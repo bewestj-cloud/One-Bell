@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Bell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E7EAE5; --surface:#F5F6F3; --ink:#1F2327; --muted:#5B636A; --line:#C8CEC7; --soft:#DADFD8;
+  --bell:#E8B820; --danger:#B3362E;
+  --display:"Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#171A1D; --surface:#212529; --ink:#E5E8E3; --muted:#9AA2A8; --line:#353B40; --soft:#2A2F33; --danger:#E0695F; }
+}
+:root[data-theme="dark"]{ --bg:#171A1D; --surface:#212529; --ink:#E5E8E3; --muted:#9AA2A8; --line:#353B40; --soft:#2A2F33; --danger:#E0695F; }
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:16px; line-height:1.45; -webkit-tap-highlight-color:transparent; min-height:100%}
+button{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--bell); outline-offset:2px}
+.app{max-width:560px; margin:0 auto; padding:0 18px 110px}
+h1,h2,h3{font-family:var(--display); font-weight:800; line-height:.95; margin:0; letter-spacing:.01em}
+p{margin:0}
+.muted{color:var(--muted)}
+
+/* figure */
+svg.fig{display:block; width:100%; height:auto; overflow:visible}
+.fig .limb{fill:none; stroke:var(--ink); stroke-linecap:round; stroke-linejoin:round; stroke-width:5.5}
+.fig .torso{fill:none; stroke:var(--ink); stroke-linecap:round; stroke-width:7}
+.fig .head{fill:var(--ink)}
+.fig .ground{stroke:var(--line); stroke-width:2}
+.fig .shadow{fill:var(--soft)}
+.fig .bbody{fill:var(--bell)}
+.fig .bhandle{fill:none; stroke:var(--bell); stroke-width:3.4}
+.fig.small .limb{stroke-width:7}.fig.small .torso{stroke-width:8.5}
+
+/* home */
+.hero{display:grid; grid-template-columns:1.05fr 1fr; align-items:end; gap:8px; padding-top:22px}
+.hero h1{font-size:clamp(64px,19vw,104px); font-weight:900; text-transform:none; line-height:.82}
+.hero .tag{margin-top:12px; font-size:15px; color:var(--muted); max-width:22ch}
+.hero .figwrap{margin-right:-10px}
+.bellchip{display:inline-flex; align-items:center; gap:8px; margin-top:16px; padding:7px 12px 7px 8px; border-radius:999px; border:1.5px solid var(--line); background:var(--surface); cursor:pointer; font-weight:600; font-size:14px}
+.dot{width:18px; height:18px; border-radius:50%; background:var(--bell); flex:none}
+.weekstrip{display:flex; gap:6px; margin:26px 0 6px}
+.weekstrip span{flex:1; height:8px; border-radius:4px; background:var(--soft)}
+.weekstrip span.on{background:var(--ink)}
+.weeklabel{font-size:13px; color:var(--muted)}
+.list{margin-top:18px; border-top:1.5px solid var(--ink)}
+.row{display:grid; grid-template-columns:54px 1fr auto; gap:14px; align-items:center; width:100%; text-align:left; background:none; border:0; border-bottom:1px solid var(--line); padding:14px 2px; cursor:pointer}
+.row .num{font-family:var(--display); font-weight:900; font-size:44px; line-height:.8}
+.row .title{font-weight:700; font-size:17px}
+.row .meta{font-size:13.5px; color:var(--muted)}
+.row .thumb{width:62px}
+.row .done{font-size:12px; color:var(--muted); text-align:right}
+.warm .num{font-size:16px; font-family:var(--body); font-weight:700; line-height:1.1}
+
+/* day */
+.topbar{display:flex; align-items:center; gap:10px; padding:14px 0 6px}
+.iconbtn{width:42px; height:42px; border-radius:50%; border:1.5px solid var(--line); background:var(--surface); display:grid; place-items:center; cursor:pointer; flex:none}
+.iconbtn svg{width:20px; height:20px; stroke:var(--ink); fill:none; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round}
+.dayhead h2{font-size:54px; margin-top:8px}
+.dayhead .fmt{display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:10px; font-weight:600}
+.seg{display:grid; grid-template-columns:repeat(3,1fr); background:var(--soft); border-radius:12px; padding:4px; margin-top:18px}
+.seg button{border:0; background:none; padding:9px 4px; border-radius:9px; font-weight:600; font-size:14px; cursor:pointer; color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); box-shadow:0 1px 0 var(--line)}
+.scalenote{font-size:14px; color:var(--muted); margin-top:10px; min-height:2.9em}
+.moves{margin-top:10px; border-top:1.5px solid var(--ink)}
+.mrow{display:grid; grid-template-columns:76px 1fr auto; gap:12px; align-items:center; width:100%; background:none; border:0; border-bottom:1px solid var(--line); padding:8px 2px; text-align:left; cursor:pointer}
+.mrow .reps{font-family:var(--display); font-weight:800; font-size:28px; white-space:nowrap}
+.mrow .nm{font-weight:600}
+.mrow .pt{font-size:13px; color:var(--muted)}
+.note{margin-top:16px; padding:14px 16px; border-left:4px solid var(--bell); background:var(--surface); border-radius:0 10px 10px 0; font-size:15px}
+.check{display:flex; gap:10px; align-items:center; margin-top:18px; font-weight:600}
+.check input{width:22px; height:22px; accent-color:var(--ink)}
+.dock{position:fixed; left:0; right:0; bottom:0; padding:12px 18px calc(12px + env(safe-area-inset-bottom,0px)); background:linear-gradient(to top, var(--bg) 70%, transparent); z-index:5}
+.dock .inner{max-width:524px; margin:0 auto; display:flex; gap:10px}
+.btn{flex:1; border:0; border-radius:14px; background:var(--ink); color:var(--bg); font-weight:700; font-size:17px; padding:17px 16px; cursor:pointer}
+.btn.ghost{background:var(--surface); color:var(--ink); border:1.5px solid var(--line); flex:0 0 auto}
+.btn:active{transform:scale(.985)}
+
+/* tabs */
+.tabs{position:fixed; left:0; right:0; bottom:0; z-index:4; background:var(--surface); border-top:1px solid var(--line); padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabs .inner{max-width:560px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr)}
+.tabs button{border:0; background:none; padding:10px 0 12px; font-size:12.5px; font-weight:600; color:var(--muted); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:3px}
+.tabs button svg{width:24px; height:24px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.tabs button[aria-current="page"]{color:var(--ink)}
+
+/* sheet */
+.scrim{position:fixed; inset:0; background:rgba(10,12,14,.45); z-index:20; display:flex; align-items:flex-end; justify-content:center}
+.sheet{background:var(--surface); width:100%; max-width:560px; max-height:92vh; overflow:auto; border-radius:22px 22px 0 0; padding:10px 20px calc(24px + env(safe-area-inset-bottom,0px)); animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(40px); opacity:.4}}
+.grab{width:44px; height:5px; border-radius:3px; background:var(--line); margin:4px auto 8px}
+.sheet h3{font-size:36px; margin-top:4px}
+.sheet .bigfig{background:var(--bg); border-radius:16px; padding:10px 18px 4px; margin:14px 0}
+.cues{margin:0; padding-left:20px}
+.cues li{margin:7px 0}
+
+/* library */
+.libgrid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:18px}
+.libitem{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:8px 10px 10px; text-align:left; cursor:pointer}
+.libitem .nm{font-weight:600; font-size:14px; line-height:1.25}
+.libitem .pt{font-size:12px; color:var(--muted)}
+.pagehead{padding-top:24px}
+.pagehead h2{font-size:52px}
+.pagehead p{margin-top:8px; color:var(--muted)}
+
+/* log */
+.stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:14px; overflow:hidden; margin-top:18px}
+.stats div{background:var(--surface); padding:12px}
+.stats b{display:block; font-family:var(--display); font-size:34px; line-height:1}
+.stats span{font-size:12.5px; color:var(--muted)}
+.logrow{display:grid; grid-template-columns:1fr auto; gap:6px; padding:13px 2px; border-bottom:1px solid var(--line)}
+.logrow .t{font-weight:700}
+.logrow .s{font-size:14px; color:var(--muted)}
+.logrow .score{font-family:var(--display); font-weight:800; font-size:26px; text-align:right}
+.del{border:0; background:none; color:var(--danger); font-size:13px; padding:2px 0; cursor:pointer; text-align:right}
+.empty{padding:40px 8px; text-align:center; color:var(--muted)}
+
+/* bell tab */
+.bellgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:8px; margin-top:16px}
+.bellpick{border:1.5px solid var(--line); background:var(--surface); border-radius:14px; padding:10px 4px 8px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; font-weight:700}
+.bellpick[aria-pressed="true"]{border-color:var(--ink); box-shadow:inset 0 0 0 1.5px var(--ink)}
+.bellpick svg{width:34px; height:34px}
+.bellpick small{font-weight:500; color:var(--muted); font-size:11.5px}
+table{width:100%; border-collapse:collapse; margin-top:12px; font-size:14.5px}
+th,td{text-align:left; padding:9px 6px; border-bottom:1px solid var(--line); vertical-align:top}
+th{font-weight:600; color:var(--muted); font-size:13px}
+.sect{margin-top:30px}
+.sect h3{font-size:30px}
+.sect p{margin-top:8px}
+.tests{counter-reset:t; margin:12px 0 0; padding:0; list-style:none}
+.tests li{display:grid; grid-template-columns:34px 1fr; gap:8px; padding:10px 0; border-bottom:1px solid var(--line)}
+.tests li::before{counter-increment:t; content:counter(t); font-family:var(--display); font-weight:900; font-size:30px; line-height:.9}
+.toggle{display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid var(--line); font-weight:600}
+.toggle input{width:22px; height:22px; accent-color:var(--ink)}
+.fine{font-size:12.5px; color:var(--muted); margin-top:26px}
+
+/* session */
+.session{position:fixed; inset:0; z-index:30; background:var(--bg); display:flex; flex-direction:column; padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px)}
+.session .in{flex:1; display:flex; flex-direction:column; max-width:560px; width:100%; margin:0 auto; padding:10px 18px 16px; min-height:0}
+.sbar{display:flex; align-items:center; gap:12px}
+.sbar .where{flex:1; font-weight:600; font-size:14.5px}
+.sbar .where small{display:block; color:var(--muted); font-weight:500}
+.prog{height:6px; background:var(--soft); border-radius:3px; margin-top:10px; overflow:hidden}
+.prog i{display:block; height:100%; background:var(--ink); transition:width .3s}
+.stage{flex:1; display:flex; flex-direction:column; justify-content:center; min-height:0; text-align:center}
+.stage .sfig{width:min(100%, 44vh); margin:0 auto}
+.stage .label{font-weight:600; color:var(--muted); font-size:14px}
+.stage .mname{font-family:var(--display); font-weight:800; font-size:clamp(34px,9vw,48px); line-height:.95; margin-top:6px}
+.stage .mreps{font-family:var(--display); font-weight:900; font-size:clamp(64px,20vw,110px); line-height:.9; margin-top:6px}
+.stage .cue{margin:10px auto 0; max-width:34ch; color:var(--muted); font-size:15px}
+.clock{font-family:var(--display); font-weight:900; font-variant-numeric:tabular-nums; font-size:clamp(90px,30vw,170px); line-height:.85}
+.clock.sm{font-size:clamp(56px,16vw,84px)}
+.upnext{display:flex; align-items:center; gap:10px; justify-content:center; margin-top:14px; font-size:14px; color:var(--muted)}
+.upnext .th{width:44px}
+.counter{display:flex; justify-content:center; gap:18px; align-items:baseline; margin-top:4px}
+.counter b{font-family:var(--display); font-size:44px}
+.sactions{display:flex; gap:10px; margin-top:12px}
+.stepper{display:flex; align-items:center; justify-content:center; gap:18px; margin-top:14px}
+.stepper button{width:52px; height:52px; border-radius:50%; border:1.5px solid var(--line); background:var(--surface); font-size:26px; cursor:pointer}
+.stepper b{font-family:var(--display); font-size:64px; min-width:1.4em}
+textarea{width:100%; margin-top:12px; border:1.5px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); font:inherit; padding:12px; min-height:84px}
+.restring{position:relative; width:min(72vw,300px); margin:0 auto}
+.restring svg{width:100%; transform:rotate(-90deg)}
+.restring .c{position:absolute; inset:0; display:grid; place-items:center}
+@media (prefers-reduced-motion: reduce){ .sheet{animation:none} .prog i{transition:none} }
+</style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1F2327">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ---------- Pose engine ----------
+const GROUND = 158, CX = 100, LEN = { torso: 42, neck: 16, ua: 24, fa: 22, th: 30, sh: 30 }, HEAD_R = 8, BELL_R = 8.5;
+const RAD = Math.PI / 180;
+const V = (a, l) => [Math.sin(a * RAD) * l, Math.cos(a * RAD) * l];
+const add = (p, q) => [p[0] + q[0], p[1] + q[1]];
+const ang = (d) => Math.atan2(d[0], d[1]) / RAD;
+const ANGLES = ['t', 'hd', 'ua1', 'fa1', 'ua2', 'fa2', 'th1', 'sh1', 'th2', 'sh2', 'ft1', 'ft2', 'bA'];
+const NUMS = ['x', 'lift', 'sw', 'hw', 'fl', 'bd', 'bz', 'bell', 'far'];
+
+const SIDE = { x: 0, lift: 0, t: 180, hd: 0, ua1: 8, fa1: 8, ua2: 5, fa2: 5, th1: 2, sh1: 0, th2: -2, sh2: 0, ft1: 90, ft2: 90, sw: 0, hw: 0, fl: 11, grip: 'both', bA: null, bd: 9, bz: 0, bell: 1, gAll: 0, gBell: 0, anc: null, far: 0.42, gx: 0 };
+const FRONT = { ...SIDE, sw: 12, hw: 6, fl: 6, far: 1, ft1: 80, ft2: -80, th1: 6, th2: -6, ua1: 14, fa1: 8, ua2: -14, fa2: -8 };
+
+function skeleton(p) {
+  const hip = [0, 0];
+  const sh = add(hip, V(p.t, LEN.torso));
+  const perp = [-Math.cos(p.t * RAD), Math.sin(p.t * RAD)];
+  const head = add(sh, V(p.t + p.hd, LEN.neck));
+  const S1 = [sh[0] + perp[0] * p.sw, sh[1] + perp[1] * p.sw], S2 = [sh[0] - perp[0] * p.sw, sh[1] - perp[1] * p.sw];
+  const H1 = [perp[0] * p.hw, perp[1] * p.hw], H2 = [-perp[0] * p.hw, -perp[1] * p.hw];
+  const E1 = add(S1, V(p.ua1, LEN.ua)), W1 = add(E1, V(p.fa1, LEN.fa));
+  const E2 = add(S2, V(p.ua2, LEN.ua)), W2 = add(E2, V(p.fa2, LEN.fa));
+  const K1 = add(H1, V(p.th1, LEN.th)), A1 = add(K1, V(p.sh1, LEN.sh)), T1 = add(A1, V(p.ft1, p.fl));
+  const K2 = add(H2, V(p.th2, LEN.th)), A2 = add(K2, V(p.sh2, LEN.sh)), T2 = add(A2, V(p.ft2, p.fl));
+  return { hip, sh, head, S1, S2, H1, H2, E1, W1, E2, W2, K1, A1, T1, K2, A2, T2 };
+}
+
+// resolve IK hand targets (h1/h2 relative to hip) into angles
+function ik(S, target, bend) {
+  const d = [target[0] - S[0], target[1] - S[1]];
+  let dist = Math.hypot(d[0], d[1]);
+  const a = LEN.ua, b = LEN.fa;
+  dist = Math.min(Math.max(dist, Math.abs(a - b) + 0.5), a + b - 0.3);
+  const base = ang(d);
+  const alpha = Math.acos((a * a + dist * dist - b * b) / (2 * a * dist)) / RAD;
+  const ua = base + bend * alpha;
+  const E = add(S, V(ua, a));
+  const fa = ang([target[0] - E[0], target[1] - E[1]]);
+  return [ua, fa];
+}
+function P(base, o) {
+  const p = { ...base, ...o };
+  if (p.h1 || p.h2) {
+    const sk = skeleton(p);
+    if (p.h1) [p.ua1, p.fa1] = ik(sk.S1, p.h1, p.b1 ?? 1);
+    if (p.h2) [p.ua2, p.fa2] = ik(sk.S2, p.h2, p.b2 ?? -1);
+    delete p.h1; delete p.h2;
+  }
+  if (p.bA == null) p.bA = p.grip === 'w2' ? p.fa2 : p.fa1;
+  return p;
+}
+const S_ = (o) => P(SIDE, o), F_ = (o) => P(FRONT, o);
+
+function lerpAng(a, b, t) { let d = ((b - a) % 360 + 540) % 360 - 180; return a + d * t; }
+function blend(A, B, t) {
+  const p = {};
+  for (const k of ANGLES) p[k] = lerpAng(A[k], B[k], t);
+  for (const k of NUMS) p[k] = A[k] + (B[k] - A[k]) * t;
+  return p;
+}
+function gripPt(sk, spec) {
+  if (spec.grip === 'w1') return sk.W1;
+  if (spec.grip === 'w2') return sk.W2;
+  return [(sk.W1[0] + sk.W2[0]) / 2, (sk.W1[1] + sk.W2[1]) / 2];
+}
+function bellLocal(sk, spec, p) {
+  const g = gripPt(sk, spec);
+  return add(g, V(p.bA, p.bd));
+}
+function groundY(sk, spec, p, bellPos) {
+  let m = Math.max(sk.A1[1] + 2, sk.A2[1] + 2, sk.T1[1] + 1.5, sk.T2[1] + 1.5);
+  if (spec.gAll) m = Math.max(m, sk.K1[1] + 3, sk.K2[1] + 3, sk.W1[1] + 2, sk.W2[1] + 2, sk.E1[1] + 3, sk.E2[1] + 3, sk.hip[1] + 3, sk.sh[1] + 3, sk.head[1] + 6);
+  if (spec.gBell && spec.grip !== 'floor' && bellPos) m = Math.max(m, bellPos[1] + BELL_R);
+  return GROUND - m - spec.lift;
+}
+function offX(sk, spec) {
+  const pt = spec.anc === 'w1' ? sk.W1 : spec.anc === 'w2' ? sk.W2 : spec.anc === 'toe1' ? sk.T1 : spec.anc === 'toe2' ? sk.T2 : [0, 0];
+  return CX + spec.x - pt[0];
+}
+
+// full world geometry for blend of keyframes A,B at t
+function frame(A, B, t) {
+  const p = blend(A, B, t);
+  const sk = skeleton(p);
+  const bl = bellLocal(sk, A, p), blB = bellLocal(sk, B, p);
+  const gA = groundY(sk, A, p, bl), gB = groundY(sk, B, p, blB);
+  const oy = gA + (gB - gA) * t, ox = offX(sk, A) + (offX(sk, B) - offX(sk, A)) * t;
+  const W = {};
+  for (const k in sk) W[k] = [sk[k][0] + ox, sk[k][1] + oy];
+  const bw = (spec, local) => spec.grip === 'floor' ? [W[spec.anc === 'w2' ? 'W2' : 'W1'][0] + spec.gx, GROUND - BELL_R] : [local[0] + ox, local[1] + oy];
+  const b1 = bw(A, bl), b2 = bw(B, blB);
+  const bell = [b1[0] + (b2[0] - b1[0]) * t, b1[1] + (b2[1] - b1[1]) * t];
+  const g1 = A.grip === 'floor' ? null : gripPt(W, A), g2 = B.grip === 'floor' ? null : gripPt(W, B);
+  let grip = g1 && g2 ? [g1[0] + (g2[0] - g1[0]) * t, g1[1] + (g2[1] - g1[1]) * t] : (t < 0.5 ? g1 : g2);
+  return { W, p, bell, grip };
+}
+
+const f = (n) => n.toFixed(1);
+const line = (...pts) => 'M' + pts.map((q) => f(q[0]) + ' ' + f(q[1])).join('L');
+function geomStrings(fr) {
+  const { W, p, bell, grip } = fr;
+  const farD = line(W.S2, W.E2, W.W2) + line(W.H2, W.K2, W.A2, W.T2);
+  const nearD = line(W.S1, W.E1, W.W1) + line(W.H1, W.K1, W.A1, W.T1);
+  const torsoD = line(W.hip, W.sh) + (p.sw > 1 ? line(W.S1, W.S2) : '') + (p.hw > 1 ? line(W.H1, W.H2) : '');
+  let hx = bell[0], hy = bell[1] - 9;
+  if (grip) {
+    const dx = grip[0] - bell[0], dy = grip[1] - bell[1], l = Math.hypot(dx, dy);
+    if (l > 2) { hx = bell[0] + dx / l * 9; hy = bell[1] + dy / l * 9; }
+  }
+  return { farD, nearD, torsoD, head: W.head, bell, handle: [hx, hy], showBell: p.bell > 0.5, behind: p.bz > 0.5, far: p.far, shadowX: (W.A1[0] + W.A2[0] + W.hip[0]) / 3 };
+}
+const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+function sample(ex, ms) {
+  const n = ex.frames.length, durs = ex.frames.map((_, i) => (ex.durs && ex.durs[i]) || ex.dur || 700);
+  const total = durs.reduce((a, b) => a + b, 0);
+  let tm = ms % total, i = 0;
+  while (tm > durs[i]) { tm -= durs[i]; i++; }
+  const hold = ex.hold || 0.12;
+  let u = Math.min(1, Math.max(0, (tm / durs[i] - hold) / (1 - hold)));
+  return geomStrings(frame(ex.frames[i], ex.frames[(i + 1) % n], ease(u)));
+}
+
+// ---------- Keyframes ----------
+const swingBot = S_({ t: 118, hd: 8, th1: 18, sh1: -6, th2: 15, sh2: -6, ua1: -22, fa1: -22, ua2: -19, fa2: -19 });
+const swingTop = S_({ t: 183, ua1: 90, fa1: 92, ua2: 87, fa2: 89 });
+const gobStand = S_({ ua1: 22, fa1: 172, ua2: 19, fa2: 170, bA: 0 });
+const gobSquat = S_({ t: 152, hd: 22, th1: 88, sh1: -24, th2: 84, sh2: -22, ua1: 30, fa1: 168, ua2: 27, fa2: 166, bA: 0 });
+const rowBot = S_({ t: 103, hd: 12, th1: 22, sh1: -4, th2: 20, sh2: -4, ua1: 0, fa1: 0, ua2: -2, fa2: -2, bA: 0 });
+const rowTop = { ...rowBot, ua1: -118, fa1: -4, ua2: -114, fa2: -4 };
+const puBase = { gAll: 1, anc: 'w1', x: 22, bell: 0 };
+const puTop = S_({ ...puBase, t: 112, th1: -68, sh1: -68, th2: -67, sh2: -67, ft1: 50, ft2: 50, ua1: 10, fa1: 10, ua2: 11, fa2: 11 });
+const puBot = S_({ ...puBase, t: 98, th1: -82, sh1: -82, th2: -81, sh2: -81, ft1: 50, ft2: 50, ua1: -60, fa1: 67, ua2: -58, fa2: 66 });
+const downDog = S_({ ...puBase, t: 50, ua1: 50, fa1: 50, ua2: 49, fa2: 49, th1: -25, sh1: -25, th2: -23, sh2: -23, ft1: 90, ft2: 90 });
+const hpBase = { gAll: 1, gBell: 1, anc: 'w1', x: 22, bA: 0 };
+const hpTop = S_({ ...hpBase, t: 125, th1: -55, sh1: -55, th2: -54, sh2: -54, ft1: 50, ft2: 50, ua1: 10, fa1: 10, ua2: 11, fa2: 11, bA: 0 });
+const hpBot = S_({ ...hpBase, t: 110, th1: -70, sh1: -70, th2: -69, sh2: -69, ft1: 50, ft2: 50, ua1: -55, fa1: 64, ua2: -53, fa2: 63, bA: 0 });
+const lie = { t: -90, hd: 0, th1: 148, sh1: 12, th2: 145, sh2: 12, ft1: 90, ft2: 90, gAll: 1, anc: 'toe1', x: 50 };
+const bridgeDn = S_({ ...lie, ua1: 90, fa1: 92, ua2: 88, fa2: 90, bell: 0 });
+const bridgeUp = S_({ ...lie, t: -68, hd: -22, th1: 112, sh1: 8, th2: 110, sh2: 8, ua1: 70, fa1: 90, ua2: 68, fa2: 88, bell: 0 });
+const lungeN = { t: 182, th1: 78, sh1: 0, ft1: 90, th2: -12, sh2: -78, ft2: 60 };
+const lungeF = { t: 182, th2: 78, sh2: 0, ft2: 90, th1: -12, sh1: -78, ft1: 60 };
+const gobArms = { ua1: 22, fa1: 172, ua2: 19, fa2: 170, bA: 0 };
+const kneel = { t: 182, th1: 88, sh1: 0, ft1: 90, th2: 2, sh2: -88, ft2: 30, gAll: 1, anc: 'toe1', x: 25 };
+const plankF = S_({ t: 100, th1: -80, sh1: -80, th2: -79, sh2: -79, ft1: 40, ft2: 40, ua1: 0, fa1: 88, ua2: 2, fa2: 88, gAll: 1, bell: 0, anc: 'w1', x: 30 });
+const pullBase = { ...puBase, bell: 1, grip: 'floor', anc: 'w2', gx: -14 };
+const pt = (o) => S_({ ...pullBase, t: 112, th1: -68, sh1: -68, th2: -67, sh2: -67, ft1: 50, ft2: 50, ua1: 10, fa1: 10, ua2: 11, fa2: 11, ...o });
+
+// ---------- Move library ----------
+const MOVES = {
+  swing: { name: 'Kettlebell swing', pattern: 'Hinge', frames: [swingBot, swingTop], dur: 620, hold: 0.05,
+    cues: ['Hike the bell back high between your thighs, then snap the hips forward.', 'Glutes squeeze hard at the top; the bell floats to chest height.', 'Arms are ropes. The power comes from hips and hamstrings, not the shoulders.', 'It is a hinge: shins stay near vertical, hips go back, not down.'] },
+  swingLight: { name: 'Two-hand swing (light)', pattern: 'Hinge', frames: [swingBot, S_({ t: 182, ua1: 60, fa1: 62, ua2: 57, fa2: 59 })], dur: 650, hold: 0.05,
+    cues: ['Easy effort, just grooving the hinge.', 'Hips back, snap forward, let the bell float to belly height.'] },
+  goblet: { name: 'Goblet squat', pattern: 'Squat', frames: [gobStand, gobSquat], dur: 950,
+    cues: ['Hold the bell by the horns, tight to your chest, elbows pointing down.', 'Sit between your heels with the chest tall.', 'Go as deep as you can keep a neutral back.', 'Drive up through the middle of the foot.'] },
+  prying: { name: 'Prying goblet squat', pattern: 'Squat · mobility', frames: [gobStand, gobSquat, S_({ ...gobSquat, t: 146, x: 5, ua1: 42, fa1: 150, ua2: 40, fa2: 148, bA: 0 }), gobSquat, S_({ ...gobSquat, t: 160, x: -3 }), gobSquat], dur: 800,
+    cues: ['Sit into the bottom of the goblet squat and stay there.', 'Use your elbows to gently pry the knees out.', 'Shift your weight side to side and front to back to open the hips.'] },
+  row: { name: 'Two-hand bent-over row', pattern: 'Pull', frames: [rowBot, rowTop], dur: 800,
+    cues: ['Hinge until your torso is close to parallel with the floor, back flat.', 'Pull the bell to your lower ribs, driving the elbows back.', 'Squeeze the shoulder blades together, then lower under control.', 'No jerking with the hips; the torso stays still.'] },
+  highpull: { name: 'Single-arm rotational high pull', pattern: 'Pull · rotation', frames: [S_({ ...swingBot, grip: 'w1', ua2: -45, fa2: -40 }), S_({ t: 186, grip: 'w1', ua1: -85, fa1: 78, bA: 0, ua2: 40, fa2: 55, ft1: 70 })], dur: 650, hold: 0.08,
+    cues: ['Start in a hinge with the bell in one hand between your feet.', 'Drive the hips through and let the torso rotate toward the working side.', 'Pull the elbow high and back so the bell finishes around chest height.', 'Pivot the back foot. Rotate from the hips, not the lower back.'] },
+  jumplunge: { name: 'Alternating jump lunge + KB rotation', pattern: 'Lunge · rotation', frames: [
+      S_({ ...lungeN, ua1: 48, fa1: 128, ua2: 44, fa2: 124, bA: 0 }), S_({ ...gobArms, lift: 16, th1: 35, sh1: -25, th2: -15, sh2: -45, ft2: 60 }),
+      S_({ ...lungeF, ua1: 48, fa1: 128, ua2: 44, fa2: 124, bA: 0 }), S_({ ...gobArms, lift: 16, th2: 35, sh2: -25, th1: -15, sh1: -45, ft1: 60 })], dur: 520, hold: 0.1,
+    cues: ['Bell at the chest, drop into a lunge and rotate the bell over the front knee.', 'Explode up, switch legs in the air, land soft into the other lunge.', 'Rotate to the new front knee. Keep the chest tall throughout.', 'Scale by stepping instead of jumping.'] },
+  kbpushup: { name: 'KB push-up', pattern: 'Push', frames: [hpTop, hpBot], dur: 800,
+    cues: ['Hands on the horns of the bell, body in one straight line.', 'Lower the chest to the handle with elbows tucked to your ribs.', 'Press back to a full lockout. Keep the glutes and core tight.', 'Make sure the bell is stable on a flat, non-slip floor.'] },
+  thruster: { name: 'Thruster', pattern: 'Squat · push', frames: [gobStand, gobSquat, S_({ ...gobStand, t: 181, ua1: 172, fa1: 176, ua2: 170, fa2: 174, bA: 180, ft1: 75 })], durs: [800, 520, 800], hold: 0.06,
+    cues: ['Goblet squat to full depth.', 'Drive out of the bottom and press the bell overhead in one smooth motion.', 'Use the leg drive to power the press; lock out with biceps by the ears.', 'Lower the bell back to the chest as you sink into the next squat.'] },
+  halo: { name: 'Halo', pattern: 'Mobility · core', view: 'front', frames: [
+      F_({ h1: [2, -30], h2: [-2, -30], bA: 180, b1: -1, b2: 1 }), F_({ h1: [22, -64], h2: [16, -62], bA: 160, b1: 1, b2: 1 }),
+      F_({ h1: [4, -60], h2: [-4, -60], bA: 180, bz: 1, b1: 1, b2: -1 }), F_({ h1: [-16, -62], h2: [-22, -64], bA: 200, b1: -1, b2: -1 })], dur: 520, hold: 0,
+    cues: ['Hold the bell upside down by the horns in front of your chest.', 'Circle it tightly around your head, close to the ears and neck.', 'Keep the elbows in and the ribs down; do not let the back arch.', 'Alternate directions.'] },
+  devilhalo: { name: "Devil's halo", pattern: 'Mobility · core', view: 'front', frames: [
+      F_({ h1: [2, -24], h2: [-2, -24], bA: 180, b1: -1, b2: 1, th1: 10, th2: -10 }), F_({ h1: [28, -58], h2: [22, -56], bA: 150, b1: 1, b2: 1, th1: 10, th2: -10, t: 186 }),
+      F_({ h1: [4, -62], h2: [-4, -62], bA: 180, bz: 1, b1: 1, b2: -1, th1: 10, th2: -10 }), F_({ h1: [-22, -56], h2: [-28, -58], bA: 210, b1: -1, b2: -1, th1: 10, th2: -10, t: 174 })], dur: 600, hold: 0,
+    cues: ['A bigger, heavier-feeling halo: wider circle, slower tempo.', 'Brace the core so only the arms move.', '6 in each direction.'] },
+  atw: { name: 'Around the world', pattern: 'Anti-rotation · core', view: 'front', frames: [
+      F_({ h1: [3, -8], h2: [-3, -8], bA: 0, b1: -1, b2: 1 }), F_({ grip: 'w1', h1: [24, -6], h2: [10, -14], bA: 0, b1: -1, b2: 1 }),
+      F_({ h1: [4, -12], h2: [-4, -12], bA: 0, bz: 1, b1: 1, b2: -1 }), F_({ grip: 'w2', h2: [-24, -6], h1: [-10, -14], bA: 0, b1: -1, b2: 1 })], dur: 480, hold: 0,
+    cues: ['Stand tall and pass the bell around your waist, hand to hand.', 'Keep the hips square; the bell moves, you do not.', 'Squeeze the glutes and keep the ribs down.', 'Switch directions halfway.'] },
+  curlpress: { name: 'Crush-grip curl + press', pattern: 'Pull · push', frames: [S_({ ua1: 6, fa1: 6, ua2: 4, fa2: 4, bd: 0 }), S_({ ua1: 14, fa1: 168, ua2: 12, fa2: 166, bd: 0 }), S_({ ua1: 176, fa1: 178, ua2: 174, fa2: 176, bd: 0 }), S_({ ua1: 14, fa1: 168, ua2: 12, fa2: 166, bd: 0 })], dur: 750,
+    cues: ['Squeeze the bell body between both palms.', 'Curl it to the chest without swinging the hips.', 'Press straight overhead; stack wrist over elbow over shoulder.', 'Ribs down, glutes tight, full lockout.'] },
+  hornpu: { name: 'Horn push-up', pattern: 'Push', frames: [hpTop, hpBot], dur: 850,
+    cues: ['Grip the horns with the bell upright on the floor.', 'Elbows tucked to the ribs; lower under control.', 'Full lockout at the top. From the knees to scale.'] },
+  pullover: { name: 'Pullover + tricep extension', pattern: 'Pull · push', frames: [
+      S_({ ...lie, ua1: -92, fa1: -92, ua2: -90, fa2: -90, bd: 0, gBell: 1 }), S_({ ...lie, ua1: 180, fa1: 180, ua2: 178, fa2: 178, bd: 0, gBell: 1 }),
+      S_({ ...lie, ua1: 176, fa1: -95, ua2: 174, fa2: -97, bd: 0, gBell: 1 }), S_({ ...lie, ua1: 180, fa1: 180, ua2: 178, fa2: 178, bd: 0, gBell: 1 })], dur: 800,
+    cues: ['Lie on your back, knees bent, bell held by the body over your chest.', 'Lower it back behind your head with slightly bent arms, then pull it back over.', 'With the elbows pointing up, bend only at the elbow for the extension.', 'Keep the lower back pressed into the floor.'] },
+  gorilla: { name: 'Single-arm gorilla row', pattern: 'Pull', frames: [
+      S_({ t: 100, hd: 14, th1: 42, sh1: -14, th2: 38, sh2: -13, ua1: 0, fa1: 0, grip: 'w1', ua2: -4, fa2: -4, bA: 0 }),
+      S_({ t: 100, hd: 14, th1: 42, sh1: -14, th2: 38, sh2: -13, ua1: -118, fa1: -4, grip: 'w1', ua2: -4, fa2: -4, bA: 0 })], dur: 800,
+    cues: ['Wide stance, deep hinge, back flat, knees bent.', 'Row the bell to your hip; the other hand braces.', 'Do not rotate the torso open. Control the lowering.'] },
+  frlunge: { name: 'Front-rack reverse lunge', pattern: 'Lunge', frames: [
+      S_({ grip: 'w1', ua1: 25, fa1: 168, bA: -40, ua2: 35, fa2: 55, anc: 'toe1', x: 10 }), S_({ ...lungeN, grip: 'w1', ua1: 25, fa1: 168, bA: -40, ua2: 35, fa2: 55, anc: 'toe1', x: 10 })], dur: 900,
+    cues: ['Bell racked at the shoulder, resting on the back of the forearm.', 'Step back and lower the back knee toward the floor.', 'Front shin stays close to vertical; drive through the front heel to stand.', 'Brace so the bell does not pull you sideways.'] },
+  splitjump: { name: 'Split jump', pattern: 'Lunge · power', frames: [
+      S_({ ...lungeN, bell: 0, ua1: -35, fa1: -10, ua2: 40, fa2: 75 }), S_({ bell: 0, lift: 18, th1: 30, sh1: -20, th2: -10, sh2: -40, ft2: 60, ua1: 0, fa1: 30, ua2: 0, fa2: 30 }),
+      S_({ ...lungeF, bell: 0, ua2: -35, fa2: -10, ua1: 40, fa1: 75 }), S_({ bell: 0, lift: 18, th2: 30, sh2: -20, th1: -10, sh1: -40, ft1: 60, ua1: 0, fa1: 30, ua2: 0, fa2: 30 })], dur: 450, hold: 0.1,
+    cues: ['From a lunge, jump straight up and switch legs mid-air.', 'Land softly back into a lunge, knee hovering off the floor.', 'Drive the opposite arm with each leg.'] },
+  squatjump: { name: 'Squat jump', pattern: 'Squat · power', frames: [
+      S_({ bell: 0, t: 140, hd: 28, th1: 90, sh1: -28, th2: 86, sh2: -26, ua1: -35, fa1: -30, ua2: -32, fa2: -28 }),
+      S_({ bell: 0, t: 182, lift: 14, th1: 2, th2: -3, ft1: 30, ft2: 30, ua1: 160, fa1: 168, ua2: 155, fa2: 162 })], durs: [520, 700], hold: 0.05,
+    cues: ['Sit into a squat, arms back.', 'Explode up, reaching the arms overhead.', 'Land quietly and sink straight into the next rep.'] },
+  run: { name: 'Run 0.25 mi (or 60 s hard cardio)', pattern: 'Gait', frames: [
+      S_({ bell: 0, t: 170, lift: 6, th1: 50, sh1: -5, th2: -30, sh2: -75, ft2: 40, ua1: -40, fa1: 40, ua2: 40, fa2: 120 }), S_({ bell: 0, t: 170, th1: 5, sh1: -8, th2: 35, sh2: -70, ua1: 0, fa1: 70, ua2: 0, fa2: 70 }),
+      S_({ bell: 0, t: 170, lift: 6, th2: 50, sh2: -5, th1: -30, sh1: -75, ft1: 40, ua2: -40, fa2: 40, ua1: 40, fa1: 120 }), S_({ bell: 0, t: 170, th2: 5, sh2: -8, th1: 35, sh1: -70, ua1: 0, fa1: 70, ua2: 0, fa2: 70 })], dur: 190, hold: 0,
+    cues: ['About 400 m. No space? 60 seconds of hard cardio: fast feet, jumping jacks, burpees.', 'This replaces rest between rounds, so keep it honest.'] },
+  plank: { name: 'Forearm plank', pattern: 'Anti-extension · core', frames: [plankF, S_({ ...plankF, t: 101, th1: -79, sh1: -79 })], dur: 1400,
+    cues: ['Elbows under shoulders, forearms flat.', 'Squeeze glutes and quads; ribs down, no sagging hips.', 'Breathe behind the brace. Hold until your form breaks.'] },
+  hswing: { name: 'Horizontal swing', pattern: 'Rotation', view: 'front', frames: [
+      F_({ h1: [-26, -16], h2: [-30, -14], th1: 12, th2: -12, t: 176, bA: -70, b1: -1, b2: 1 }), F_({ h1: [2, 6], h2: [-2, 6], th1: 16, sh1: -8, th2: -16, sh2: 8, bA: 0, b1: -1, b2: 1 }),
+      F_({ h1: [30, -14], h2: [26, -16], th1: 12, th2: -12, t: 184, bA: 70, b1: -1, b2: 1 }), F_({ h1: [2, 6], h2: [-2, 6], th1: 16, sh1: -8, th2: -16, sh2: 8, bA: 0, b1: -1, b2: 1 })], dur: 480, hold: 0.05,
+    cues: ['Wide stance, arms long, bell held with both hands.', 'Swing it side to side across the body at hip height.', 'Turn from the hips and pivot the feet; brace against the momentum at each end.'] },
+  ohmarch: { name: 'Overhead march', pattern: 'Carry · core', frames: [
+      S_({ grip: 'w1', ua1: 170, fa1: 174, bA: 160, ua2: 8, fa2: 8, th2: 85, sh2: -2, ft2: 90 }), S_({ grip: 'w1', ua1: 170, fa1: 174, bA: 160, ua2: 8, fa2: 8 }),
+      S_({ grip: 'w1', ua1: 170, fa1: 174, bA: 160, ua2: 8, fa2: 8, th1: 85, sh1: -2 }), S_({ grip: 'w1', ua1: 170, fa1: 174, bA: 160, ua2: 8, fa2: 8 })], dur: 520,
+    cues: ['Lock the bell overhead, biceps by the ear, wrist straight.', 'March slowly, bringing each knee to hip height.', 'Do not lean away from the bell. Stack and brace.'] },
+  woodchop: { name: 'Kneeling wood chop', pattern: 'Rotation', frames: [S_({ ...kneel, t: 190, ua1: 165, fa1: 175, ua2: 160, fa2: 170 }), S_({ ...kneel, t: 168, hd: 10, ua1: 40, fa1: 25, ua2: 36, fa2: 22 })], durs: [700, 900], hold: 0.1,
+    cues: ['Half-kneel, bell held in both hands.', 'Start high over the back shoulder and chop diagonally down past the front hip.', 'Rotate from the hips and core, not the lower back.'] },
+  pullthru: { name: 'Plank pull-through + push-up', pattern: 'Anti-rotation · push', frames: [
+      pt({ bz: 1 }), pt({ bz: 1, ua1: -30, fa1: -35 }), pt({ bz: 0, ua1: -30, fa1: -35 }), pt({ bz: 0 }),
+      S_({ ...pullBase, t: 98, th1: -82, sh1: -82, th2: -81, sh2: -81, ft1: 50, ft2: 50, ua1: -60, fa1: 67, ua2: -58, fa2: 66, bz: 0 }), pt({ bz: 0 })], durs: [500, 400, 500, 700, 700, 600],
+    cues: ['High plank with the bell just behind one hand.', 'Reach under your body with the other hand and drag the bell across.', 'Keep the hips square to the floor; do not twist.', 'Do a push-up, then pull it back the other way.'] },
+  pushdog: { name: 'Push-up to down-dog', pattern: 'Push · mobility', frames: [puTop, puBot, puTop, downDog], durs: [700, 700, 900, 1000],
+    cues: ['Do a push-up, then press the hips up and back into a down-dog.', 'Push the chest toward the thighs and the heels toward the floor.', 'Flow back into the plank.'] },
+  bridge: { name: 'Hip bridge', pattern: 'Hinge · glutes', frames: [bridgeDn, bridgeUp], dur: 800,
+    cues: ['Lie on your back, feet flat and close to your glutes.', 'Drive through the heels and squeeze the glutes to lift the hips.', 'Ribs down; do not arch the lower back.'] },
+  armcircles: { name: 'Arm circles + wrist rolls', pattern: 'Mobility', frames: [0, 90, 180, 270].map((a) => S_({ bell: 0, ua1: a, fa1: a, ua2: a + 12, fa2: a + 12 })), dur: 300, hold: 0,
+    cues: ['Big, slow circles forwards, then backwards.', 'Finish with wrist rolls in both directions.'] },
+};
+
+
+const sumoUp = F_({ th1: 16, th2: -16, ft1: 70, ft2: -70, h1: [3, 2], h2: [-3, 2], bA: 0, b1: 1, b2: -1 });
+const sumoDn = F_({ th1: 62, sh1: -8, th2: -62, sh2: 8, ft1: 70, ft2: -70, h1: [3, 6], h2: [-3, 6], bA: 0, b1: 1, b2: -1 });
+const ssRow = { t: 125, hd: 20, th1: 40, sh1: -5, th2: -25, sh2: -25, ft2: 60, grip: 'w1', h2: [22, 20], b2: 1, bA: 0 };
+Object.assign(MOVES, {
+  sumo: { name: 'Sumo squat', pattern: 'Squat', view: 'front', frames: [sumoUp, sumoDn], dur: 900,
+    cues: ['Wide stance, toes turned out, bell hanging from both hands between your legs.', 'Push the knees out over the toes as you sit straight down.', 'Chest tall, spine long; the bell stays close to the body.', 'Drive through the whole foot to stand and squeeze the glutes.'] },
+  hpress: { name: 'Horizontal press', pattern: 'Push · anti-extension', frames: [S_({ ua1: 22, fa1: 172, ua2: 19, fa2: 170, bA: 0 }), S_({ ua1: 88, fa1: 90, ua2: 86, fa2: 88, bA: 0, t: 178 })], dur: 800,
+    cues: ['Hold the bell by the horns at chest height.', 'Press it straight out in front until the arms are locked.', 'Ribs down and glutes tight so the bell does not pull you forward.', 'Bring it back to the chest under control.'] },
+  crushpress: { name: 'Crush press', pattern: 'Push', frames: [S_({ ua1: 14, fa1: 168, ua2: 12, fa2: 166, bd: 0 }), S_({ ua1: 176, fa1: 178, ua2: 174, fa2: 176, bd: 0 })], dur: 850,
+    cues: ['Squeeze the bell body hard between both palms at the chest.', 'Keep squeezing as you press it straight overhead.', 'Stack wrists over elbows over shoulders; ribs down.', 'Full-body tension the whole rep, including the lowering.'] },
+  curtsy: { name: 'Curtsy lunge', pattern: 'Lunge', view: 'front', frames: [
+      F_({ ua1: 22, fa1: 172, ua2: -22, fa2: -172, h1: [3, -30], h2: [-3, -30], bA: 0, b1: -1, b2: 1 }),
+      F_({ th1: 35, sh1: -25, th2: 25, sh2: 25, ft2: 90, h1: [3, -30], h2: [-3, -30], bA: 0, b1: -1, b2: 1 }),
+      F_({ ua1: 22, fa1: 172, ua2: -22, fa2: -172, h1: [3, -30], h2: [-3, -30], bA: 0, b1: -1, b2: 1 }),
+      F_({ th2: -35, sh2: 25, th1: -25, sh1: -25, ft1: -90, h1: [3, -30], h2: [-3, -30], bA: 0, b1: -1, b2: 1 })], dur: 750,
+    cues: ['Bell at the chest. Step one foot back and across behind the other, like a curtsy.', 'Lower the back knee toward the floor; the front knee tracks over the toes.', 'Keep the hips square to the front.', 'Drive through the front foot to stand, then switch sides.'] },
+  ssrow: { name: 'Split-stance row', pattern: 'Pull', frames: [S_({ ...ssRow, ua1: 2, fa1: 2 }), S_({ ...ssRow, ua1: -118, fa1: -4 })], dur: 800,
+    cues: ['Staggered stance, hinge forward, free hand braced on the front thigh.', 'Row the bell to your hip, elbow close to the body.', 'Do not let the torso twist open as you pull.', 'Lower slowly; 6 each side.'] },
+});
+
+// ---------- Program ----------
+const DAYS = [
+  { n: 1, title: 'Full-body strength', focus: 'Full body', kind: 'rounds', est: '~25 min',
+    moves: [['row', '5'], ['swing', '5'], ['highpull', '5/side'], ['goblet', '5'], ['jumplunge', '5'], ['kbpushup', '5']],
+    scale: { easy: { rounds: 3, rest: 150, note: '3 rounds with a lighter bell. Take 2–3 minutes between rounds.' },
+             std: { rounds: 5, rest: 120, note: '5 rounds, 2 minutes rest. Leave 1–2 reps in the tank. This is your benchmark session.' },
+             hard: { rounds: 6, rest: 90, note: '6 rounds with a heavier bell and only 90 seconds of rest.' } },
+    info: 'Move through all six without putting the bell down. That is one round. Pull, hinge, squat, lunge and push in every round.' },
+  { n: 2, title: '20-minute AMRAP', focus: 'Full body', kind: 'amrap', est: '20 min',
+    moves: [['row', '12'], ['swing', '12'], ['goblet', '12'], ['thruster', '12'], ['devilhalo', '12'], ['atw', '12']],
+    scale: { easy: { cap: 15, note: '15-minute cap. Drop to 8 reps per move if 12 is too much.' },
+             std: { cap: 20, note: 'As many rounds as possible in 20 minutes. Pick a pace you can repeat.' },
+             hard: { cap: 20, note: 'Heavier bell and push the pace. Your score is the round count to beat.' } },
+    info: 'Steady, repeatable pace. Do not blow up in round one. Your score is total rounds; beat it next time.' },
+  { n: 3, title: 'Upper body', focus: 'Upper body', kind: 'rounds', est: '~22 min',
+    moves: [['curlpress', '6'], ['halo', '6'], ['hornpu', '6'], ['pullover', '6'], ['gorilla', '6/side']],
+    scale: { easy: { rounds: 4, rest: 90, note: '4 rounds. Do the horn push-ups from your knees.' },
+             std: { rounds: 6, rest: 90, note: '6 rounds, 90 seconds rest. Strict: no leg drive, no momentum.' },
+             hard: { rounds: 6, rest: 90, note: 'Heavier bell, and pause for 2 seconds at the top of every press.' } },
+    info: 'Strict upper-body work. Control every rep and breathe: out on the press, in on the reset.' },
+  { n: 4, title: 'Marathon legs', focus: 'Legs', kind: 'rounds', est: '~30 min',
+    moves: [['swing', '20'], ['frlunge', '10/side'], ['splitjump', '10'], ['goblet', '10'], ['squatjump', '10'], ['run', '¼ mi']],
+    scale: { easy: { rounds: 3, rest: 0, note: '3 rounds. Swap the run for 45 seconds of fast feet. Skip the burpees.' },
+             std: { rounds: 4, rest: 0, burpees: [1, 3], note: '4 rounds. Optional: 10 burpees over the bell before rounds 1 and 3.' },
+             hard: { rounds: 4, rest: 0, burpees: [1, 2, 3, 4], note: '10 burpees over the bell before every round.' } },
+    info: 'Pace round one; the legs go fast. Explosive on the jumps, controlled on the squats and lunges.' },
+  { n: 5, title: 'Bulletproof core', focus: 'Core', kind: 'core', est: '~20 min',
+    moves: [['atw', '10/dir'], ['hswing', '10'], ['ohmarch', '10/side'], ['woodchop', '6/side'], ['pullthru', '10']],
+    scale: { easy: { cap: 10, note: '10-minute cap, lighter bell, planks from the knees.' },
+             std: { cap: 15, note: 'Plank to failure, 15-minute AMRAP, plank to failure again.' },
+             hard: { cap: 20, note: '20-minute cap. Put the bell on your back during the planks (with a partner to place it).' } },
+    info: 'Bookended by a forearm plank held to failure. Brace hard, breathe, do not rush.' },
+  { n: 6, title: 'Foundation eight', focus: 'Full body', kind: 'rounds', est: '~35 min',
+    moves: [['sumo', '6'], ['swing', '6'], ['hpress', '6'], ['crushpress', '6'], ['curtsy', '6'], ['ssrow', '6/side'], ['pullthru', '6']],
+    scale: { easy: { cap: 20, note: '20-minute AMRAP instead of 8 rounds: as many quality rounds as you can. Pull-throughs from the knees.' },
+             std: { rounds: 8, rest: 90, note: '8 rounds with 1–2 minutes rest (90 s on the timer; add time if you need it).' },
+             hard: { rounds: 8, rest: 60, note: '8 rounds with 1 minute rest. Suggested bell: 20–24 kg if you are advanced.' } },
+    info: 'The foundation patterns. Clean reps over speed. Suggested bells: beginner 8–12 kg, intermediate 12–16 kg, advanced 20–24 kg.' },
+];
+const WARMUP = [['halo', '5 each way'], ['prying', '8'], ['bridge', '10'], ['swingLight', '10'], ['pushdog', '5'], ['armcircles', '10 each']];
+const BELL_COLORS = { 4: '#9AA5AE', 6: '#C8A2D6', 8: '#E6799F', 10: '#8E969C', 12: '#3D7BD1', 14: '#9C8563', 16: '#E8B820', 18: '#7C8C4E', 20: '#7A4DB3', 22: '#A2ADB5', 24: '#2E9A57', 28: '#E8742A', 32: '#D23A33' };
+
+// ---------- Storage ----------
+const KEY = 'onebell.v1';
+let S = { bell: 16, sound: true, warm: true, scale: {}, log: [] };
+try { const raw = localStorage.getItem(KEY); if (raw) S = { ...S, ...JSON.parse(raw) }; } catch (e) {}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function applyBell() { document.documentElement.style.setProperty('--bell', BELL_COLORS[S.bell] || '#8E969C'); }
+applyBell();
+
+// ---------- Figures ----------
+const FIGS = new Set();
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function bellGroup(parent) { const g = el('g', {}, parent); const h = el('circle', { r: 5, class: 'bhandle' }, g); const b = el('circle', { r: 8.5, class: 'bbody' }, g); return { g, h, b }; }
+function figure(id, { small = false, animate = true, ground = true } = {}) {
+  const svg = el('svg', { viewBox: small ? '10 20 180 150' : '0 -10 200 176', class: 'fig' + (small ? ' small' : ''), role: 'img', 'aria-label': MOVES[id].name + ' demonstration' });
+  if (ground) el('line', { x1: 8, x2: 192, y1: 158, y2: 158, class: 'ground' }, svg);
+  const shadow = el('ellipse', { cx: 100, cy: 158, rx: 30, ry: 3.5, class: 'shadow' }, svg);
+  const bB = bellGroup(svg);
+  const far = el('path', { class: 'limb' }, svg), torso = el('path', { class: 'torso' }, svg), head = el('circle', { r: 8, class: 'head' }, svg), near = el('path', { class: 'limb' }, svg);
+  const bF = bellGroup(svg);
+  const f = { id, svg, shadow, bB, bF, far, torso, head, near, animate: animate && !reduce, offset: Math.random() * 3000 };
+  draw(f, 0); FIGS.add(f); return svg;
+}
+function draw(f, ms) {
+  const g = sample(MOVES[f.id], ms + f.offset);
+  f.far.setAttribute('d', g.farD); f.far.style.strokeOpacity = g.far; f.near.setAttribute('d', g.nearD); f.torso.setAttribute('d', g.torsoD);
+  f.head.setAttribute('cx', g.head[0]); f.head.setAttribute('cy', g.head[1]); f.shadow.setAttribute('cx', g.shadowX);
+  const on = g.showBell ? (g.behind ? f.bB : f.bF) : null, off = [f.bB, f.bF].filter((x) => x !== on);
+  off.forEach((x) => x.g.style.display = 'none');
+  if (on) { on.g.style.display = ''; on.b.setAttribute('cx', g.bell[0]); on.b.setAttribute('cy', g.bell[1]); on.h.setAttribute('cx', g.handle[0]); on.h.setAttribute('cy', g.handle[1]); on.g.style.opacity = g.behind ? .55 : 1; }
+}
+function loop(ts) {
+  for (const f of FIGS) { if (!f.svg.isConnected) { FIGS.delete(f); continue; } if (f.animate) draw(f, ts); }
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+function staticBell(kg, size = 34) {
+  return `<svg viewBox="0 0 40 40" width="${size}" height="${size}" aria-hidden="true"><path d="M13 16 C11 4, 29 4, 27 16" fill="none" stroke="${BELL_COLORS[kg]}" stroke-width="4" stroke-linecap="round"/><circle cx="20" cy="25" r="12" fill="${BELL_COLORS[kg]}"/></svg>`;
+}
+
+// ---------- Helpers ----------
+const $ = (s, r = document) => r.querySelector(s);
+const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const mmss = (s) => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const ICON = {
+  back: '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>',
+  close: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  week: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  moves: '<svg viewBox="0 0 24 24"><circle cx="12" cy="4.5" r="2"/><path d="M12 7v7M12 14l-4 6M12 14l4 6M6 9l6 1 6-1"/></svg>',
+  log: '<svg viewBox="0 0 24 24"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>',
+  bell: '<svg viewBox="0 0 24 24"><path d="M8 10C7 3 17 3 16 10"/><circle cx="12" cy="15" r="6"/></svg>',
+};
+function scaleOf(d) { return S.scale[d.n] || 'std'; }
+function weekStart() { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.getTime(); }
+function lastDone(n) { const e = S.log.filter((x) => x.day === n); return e.length ? e[e.length - 1] : null; }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }); }
+function scoreText(e) {
+  if (e.kind === 'rounds') return `${e.rounds} rds`;
+  return `${e.score} rds` + (e.extra ? ` + ${e.extra}` : '');
+}
+
+// ---------- Views ----------
+let tab = 'week';
+const root = $('#root');
+function render() {
+  root.innerHTML = '';
+  const app = h('<div class="app"></div>'); root.appendChild(app);
+  ({ week: viewWeek, moves: viewLib, log: viewLog, bell: viewBell })[tab](app);
+  const tabs = h(`<nav class="tabs" aria-label="Sections"><div class="inner">
+    ${[['week', 'Week'], ['moves', 'Moves'], ['log', 'Log'], ['bell', 'Bell']].map(([k, l]) => `<button data-t="${k}" ${tab === k ? 'aria-current="page"' : ''}>${ICON[k]}${l}</button>`).join('')}</div></nav>`);
+  tabs.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { tab = b.dataset.t; render(); scrollTo(0, 0); } });
+  root.appendChild(tabs);
+}
+
+function viewWeek(app) {
+  const ws = weekStart(); const doneThisWeek = new Set(S.log.filter((e) => e.date >= ws).map((e) => e.day));
+  const hero = h(`<section class="hero">
+    <div><h1>One<br>Bell</h1><p class="tag">Six sessions, one kettlebell, 20 to 35 minutes each.</p>
+    <button class="bellchip" id="chip"><span class="dot"></span>${S.bell} kg bell</button></div>
+    <div class="figwrap"></div></section>`);
+  hero.querySelector('.figwrap').appendChild(figure('swing'));
+  hero.querySelector('#chip').onclick = () => { tab = 'bell'; render(); };
+  app.appendChild(hero);
+  app.appendChild(h(`<div><div class="weekstrip" aria-hidden="true">${DAYS.map((d) => `<span class="${doneThisWeek.has(d.n) ? 'on' : ''}"></span>`).join('')}</div>
+    <p class="weeklabel">${doneThisWeek.size} of 6 sessions done this week</p></div>`));
+  const list = h('<div class="list"></div>');
+  const w = h(`<button class="row warm"><span class="num">5 min</span><span><span class="title">Warm-up</span><br><span class="meta">Before every session. Not optional.</span></span><span class="thumb"></span></button>`);
+  w.querySelector('.thumb').appendChild(figure('halo', { small: true }));
+  w.onclick = () => openWarmup(); list.appendChild(w);
+  DAYS.forEach((d) => {
+    const last = lastDone(d.n);
+    const r = h(`<button class="row"><span class="num">${d.n}</span><span><span class="title">${esc(d.title)}</span><br><span class="meta">${d.focus}, ${d.est}${last ? ` · last ${fmtDate(last.date)}` : ''}</span></span><span class="thumb"></span></button>`);
+    r.querySelector('.thumb').appendChild(figure(d.moves[0][0], { small: true }));
+    r.onclick = () => openDay(d); list.appendChild(r);
+  });
+  app.appendChild(list);
+}
+
+function moveRows(container, items) {
+  items.forEach(([id, reps]) => {
+    const r = h(`<button class="mrow"><span class="th"></span><span><span class="nm">${esc(MOVES[id].name)}</span><br><span class="pt">${MOVES[id].pattern}</span></span><span class="reps">×${esc(reps)}</span></button>`);
+    r.querySelector('.th').appendChild(figure(id, { small: true }));
+    r.onclick = () => openMove(id); container.appendChild(r);
+  });
+}
+
+function dayFormat(d, sc) {
+  const s = d.scale[sc];
+  if (d.kind === 'rounds' && !s.cap) return [`${s.rounds} rounds`, s.rest ? `${s.rest >= 120 ? s.rest / 60 + ' min' : s.rest + ' s'} rest` : 'run between rounds', d.est];
+  if (d.kind === 'amrap' || s.cap && d.kind === 'rounds') return [`${s.cap}-min AMRAP`, 'score = rounds', 'one bell'];
+  return ['Plank to failure', `${s.cap}-min AMRAP`, 'plank to failure'];
+}
+function openDay(d) {
+  root.innerHTML = '';
+  const app = h('<div class="app"></div>'); root.appendChild(app);
+  const sc = scaleOf(d);
+  app.appendChild(h(`<div class="topbar"><button class="iconbtn" id="bk" aria-label="Back">${ICON.back}</button></div>`));
+  $('#bk', app).onclick = () => render();
+  const last = lastDone(d.n);
+  app.appendChild(h(`<div class="dayhead"><p class="muted" style="font-weight:600">Day ${d.n}, ${d.focus.toLowerCase()}</p><h2>${esc(d.title)}</h2>
+    <div class="fmt">${dayFormat(d, sc).map((x) => `<span>${x}</span>`).join('')}</div>
+    ${last ? `<p class="muted" style="margin-top:6px;font-size:14px">Last time: ${fmtDate(last.date)}, ${scoreText(last)} with ${last.bell} kg</p>` : ''}</div>`));
+  const seg = h(`<div class="seg" role="group" aria-label="Difficulty">${[['easy', 'Easier'], ['std', 'Standard'], ['hard', 'Harder']].map(([k, l]) => `<button data-k="${k}" aria-pressed="${sc === k}">${l}</button>`).join('')}</div>`);
+  seg.onclick = (e) => { const b = e.target.closest('button'); if (!b) return; S.scale[d.n] = b.dataset.k; save(); openDay(d); };
+  app.appendChild(seg);
+  app.appendChild(h(`<p class="scalenote">${esc(d.scale[sc].note)}</p>`));
+  const mv = h('<div class="moves"></div>');
+  if (d.kind === 'core') moveRows(mv, [['plank', 'max']]);
+  moveRows(mv, d.moves);
+  if (d.kind === 'core') moveRows(mv, [['plank', 'max']]);
+  app.appendChild(mv);
+  app.appendChild(h(`<p class="note">${esc(d.info)}</p>`));
+  const ck = h(`<label class="check"><input type="checkbox" ${S.warm ? 'checked' : ''}> Start with the 5-minute warm-up</label>`);
+  ck.querySelector('input').onchange = (e) => { S.warm = e.target.checked; save(); };
+  app.appendChild(ck);
+  const dock = h(`<div class="dock"><div class="inner"><button class="btn">Start session</button></div></div>`);
+  dock.querySelector('.btn').onclick = () => startSession(d);
+  root.appendChild(dock);
+  scrollTo(0, 0);
+}
+
+function openWarmup() {
+  root.innerHTML = '';
+  const app = h('<div class="app"></div>'); root.appendChild(app);
+  app.appendChild(h(`<div class="topbar"><button class="iconbtn" id="bk" aria-label="Back">${ICON.back}</button></div>`));
+  $('#bk', app).onclick = () => render();
+  app.appendChild(h(`<div class="dayhead"><p class="muted" style="font-weight:600">Every session</p><h2>Warm-up</h2><div class="fmt"><span>6 moves</span><span>about 5 minutes</span><span>light bell</span></div></div>`));
+  const mv = h('<div class="moves" style="margin-top:18px"></div>'); moveRows(mv, WARMUP); app.appendChild(mv);
+  const dock = h(`<div class="dock"><div class="inner"><button class="btn">Run warm-up only</button></div></div>`);
+  dock.querySelector('.btn').onclick = () => startSession(null);
+  root.appendChild(dock);
+  scrollTo(0, 0);
+}
+
+function openMove(id) {
+  const m = MOVES[id];
+  const scrim = h(`<div class="scrim" role="dialog" aria-modal="true" aria-label="${esc(m.name)}"><div class="sheet"><div class="grab"></div>
+    <p class="muted" style="font-weight:600">${m.pattern}</p><h3>${esc(m.name)}</h3><div class="bigfig"></div>
+    <ul class="cues">${m.cues.map((c) => `<li>${esc(c)}</li>`).join('')}</ul>
+    <div style="margin-top:18px;display:flex"><button class="btn ghost" style="flex:1">Close</button></div></div></div>`);
+  const fg = figure(id); FIGS.forEach((f) => { if (f.svg === fg) f.animate = true; });
+  scrim.querySelector('.bigfig').appendChild(fg);
+  const close = () => scrim.remove();
+  scrim.onclick = (e) => { if (e.target === scrim) close(); };
+  scrim.querySelector('.btn').onclick = close;
+  document.addEventListener('keydown', function k(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', k); } });
+  document.body.appendChild(scrim);
+}
+
+function viewLib(app) {
+  app.appendChild(h(`<div class="pagehead"><h2>Moves</h2><p>Every movement in the week. Tap one for the cues.</p></div>`));
+  const g = h('<div class="libgrid"></div>');
+  Object.keys(MOVES).forEach((id) => {
+    const b = h(`<button class="libitem"><div class="f"></div><div class="nm">${esc(MOVES[id].name)}</div><div class="pt">${MOVES[id].pattern}</div></button>`);
+    b.querySelector('.f').appendChild(figure(id, { small: true }));
+    b.onclick = () => openMove(id); g.appendChild(b);
+  });
+  app.appendChild(g);
+}
+
+function viewLog(app) {
+  app.appendChild(h(`<div class="pagehead"><h2>Log</h2><p>Your finished sessions. Beat the number from last time.</p></div>`));
+  const ws = weekStart();
+  const best2 = Math.max(0, ...S.log.filter((e) => e.kind === 'amrap').map((e) => e.score + (e.extra || 0) / 100));
+  const plank = Math.max(0, ...S.log.filter((e) => e.day === 5).map((e) => Math.max(e.plank1 || 0, e.plank2 || 0)));
+  app.appendChild(h(`<div class="stats"><div><b>${S.log.length}</b><span>sessions</span></div><div><b>${best2 ? Math.floor(best2) : '–'}</b><span>best AMRAP rounds</span></div><div><b>${plank ? mmss(plank) : '–'}</b><span>longest plank</span></div></div>`));
+  if (!S.log.length) { app.appendChild(h(`<p class="empty">No sessions yet. Start with Day 1 from the Week tab; it is your benchmark.</p>`)); return; }
+  const list = h('<div style="margin-top:14px"></div>');
+  [...S.log].reverse().forEach((e) => {
+    const d = DAYS.find((x) => x.n === e.day);
+    const extra = [e.bell + ' kg', { easy: 'easier', std: 'standard', hard: 'harder' }[e.scale], e.dur ? mmss(e.dur) + ' total' : ''].filter(Boolean).join(', ');
+    const planks = e.plank1 ? `<br>Planks ${mmss(e.plank1)} and ${mmss(e.plank2 || 0)}` : '';
+    const r = h(`<div class="logrow"><div><div class="t">Day ${e.day}: ${esc(d ? d.title : '')}</div><div class="s">${fmtDate(e.date)} · ${extra}${planks}${e.note ? `<br>“${esc(e.note)}”` : ''}</div></div>
+      <div><div class="score">${scoreText(e)}</div><button class="del">Delete</button></div></div>`);
+    r.querySelector('.del').onclick = () => { if (confirm('Delete this session from your log?')) { S.log = S.log.filter((x) => x.id !== e.id); save(); render(); } };
+    list.appendChild(r);
+  });
+  app.appendChild(list);
+}
+
+function viewBell(app) {
+  app.appendChild(h(`<div class="pagehead"><h2>Your bell</h2><p>One bell runs the whole week. Size it to your press, not your swing.</p></div>`));
+  const g = h('<div class="bellgrid" role="group" aria-label="Bell weight"></div>');
+  Object.keys(BELL_COLORS).map(Number).forEach((kg) => {
+    const b = h(`<button class="bellpick" aria-pressed="${S.bell === kg}">${staticBell(kg)}${kg} kg<small>${Math.round(kg * 2.2046)} lb</small></button>`);
+    b.onclick = () => { S.bell = kg; save(); applyBell(); render(); };
+    g.appendChild(b);
+  });
+  app.appendChild(g);
+  app.appendChild(h(`<section class="sect"><h3>Where to start</h3>
+    <table><thead><tr><th>Experience</th><th>Men</th><th>Women</th></tr></thead><tbody>
+    <tr><td>New to kettlebells</td><td>12–16 kg</td><td>8–12 kg</td></tr>
+    <tr><td>Some training</td><td>16–20 kg</td><td>12–16 kg</td></tr>
+    <tr><td>Strong and experienced</td><td>20–24 kg</td><td>16–20 kg</td></tr></tbody></table>
+    <p class="muted" style="font-size:14px">Between sizes? Go down. You can always work harder with a lighter bell.</p></section>`));
+  app.appendChild(h(`<section class="sect"><h3>The 3-move test</h3><p>Pass all three with 1–2 reps left in the tank and you have your bell.</p>
+    <ol class="tests"><li><span><b>Strict press</b>, 5 clean reps per side. This is the ceiling; if it fails, drop a size.</span></li>
+    <li><span><b>Goblet squat</b>, 10 smooth reps with the chest tall.</span></li>
+    <li><span><b>Swing</b>, 20 powerful reps with crisp hips and no form breakdown.</span></li></ol></section>`));
+  app.appendChild(h(`<section class="sect"><h3>When to size up</h3><p>Only when all three are true: 20+ swings feel crisp without a big heart-rate spike, your last presses feel like 2+ reps were left, and you finish every round with form to spare. Add reps, rounds and tempo before adding weight.</p></section>`));
+  const set = h(`<section class="sect"><h3>Settings</h3>
+    <label class="toggle">Sound and vibration cues <input type="checkbox" id="snd" ${S.sound ? 'checked' : ''}></label>
+    <label class="toggle">Warm-up before each session <input type="checkbox" id="wrm" ${S.warm ? 'checked' : ''}></label></section>`);
+  set.querySelector('#snd').onchange = (e) => { S.sound = e.target.checked; save(); };
+  set.querySelector('#wrm').onchange = (e) => { S.warm = e.target.checked; save(); };
+  app.appendChild(set);
+  app.appendChild(h(`<p class="fine">Training plan based on the Fit Dad Company free kettlebell week. General fitness guidance, not medical advice. Check with your doctor before starting, and stop if you feel pain, dizziness or chest discomfort.</p>`));
+}
+
+// ---------- Audio / wake ----------
+let actx = null;
+function beep(freq = 880, len = 0.15, n = 1) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < n; i++) {
+      const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + i * (len + 0.08);
+      o.frequency.value = freq; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.3, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+      o.start(t0); o.stop(t0 + len + 0.02);
+    }
+    if (navigator.vibrate) navigator.vibrate(n > 1 ? [120, 80, 120] : 80);
+  } catch (e) {}
+}
+let wake = null;
+async function keepAwake(on) { try { if (on && 'wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); else if (wake) { wake.release(); wake = null; } } catch (e) {} }
+
+// ---------- Session ----------
+let SES = null, tick = null;
+function buildSteps(d) {
+  const steps = [];
+  if (S.warm || !d) WARMUP.forEach(([id, reps]) => steps.push({ k: 'move', id, reps, sect: 'Warm-up' }));
+  if (!d) return steps;
+  const sc = d.scale[scaleOf(d)];
+  if (d.kind === 'rounds' && !sc.cap) {
+    for (let r = 1; r <= sc.rounds; r++) {
+      if (sc.burpees && sc.burpees.includes(r)) steps.push({ k: 'move', id: 'squatjump', reps: '10 burpees', alt: 'Burpees over the bell', sect: `Round ${r} of ${sc.rounds}` });
+      d.moves.forEach(([id, reps]) => steps.push({ k: 'move', id, reps, sect: `Round ${r} of ${sc.rounds}`, round: r, timer: id === 'run' ? (scaleOf(d) === 'easy' ? 45 : 60) : 0 }));
+      if (r < sc.rounds && sc.rest) steps.push({ k: 'rest', secs: sc.rest, sect: `Rest before round ${r + 1}` });
+    }
+  } else {
+    if (d.kind === 'core') steps.push({ k: 'plank', which: 1, sect: 'Opening plank' });
+    steps.push({ k: 'amrap', cap: sc.cap, moves: d.moves, sect: `${sc.cap}-minute AMRAP` });
+    if (d.kind === 'core') steps.push({ k: 'plank', which: 2, sect: 'Closing plank' });
+  }
+  steps.push({ k: 'done', sect: 'Finished' });
+  return steps;
+}
+function startSession(d) {
+  if (actx === null) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  SES = { d, steps: buildSteps(d), i: 0, start: Date.now(), res: { rounds: 0, score: 0, extra: 0, plank1: 0, plank2: 0 } };
+  keepAwake(true);
+  const wrap = h('<div class="session"><div class="in"></div></div>');
+  document.body.appendChild(wrap); document.body.style.overflow = 'hidden';
+  SES.el = wrap.querySelector('.in');
+  showStep();
+}
+function endSession() {
+  clearInterval(tick); keepAwake(false);
+  document.querySelector('.session')?.remove(); document.body.style.overflow = '';
+  const d = SES && SES.d; SES = null;
+  if (d) openDay(d); else render();
+}
+function nextStep() { clearInterval(tick); SES.i++; showStep(); }
+function header(step) {
+  const total = SES.steps.length - 1, pct = Math.min(100, (SES.i / total) * 100);
+  return `<div class="sbar"><button class="iconbtn" id="x" aria-label="End session">${ICON.close}</button>
+    <div class="where">${esc(step.sect)}<small>${SES.d ? 'Day ' + SES.d.n + ', ' + esc(SES.d.title) : 'Warm-up'}</small></div>
+    <div class="muted" id="el" style="font-variant-numeric:tabular-nums;font-weight:600">${mmss((Date.now() - SES.start) / 1000)}</div></div>
+    <div class="prog"><i style="width:${pct}%"></i></div>`;
+}
+function bindHeader() {
+  $('#x', SES.el).onclick = () => {
+    const done = SES.steps[SES.i].k === 'done';
+    if (done || confirm('End this session? It will not be saved to your log.')) endSession();
+  };
+}
+function everySec(fn) { clearInterval(tick); fn(); tick = setInterval(() => { const el = $('#el', SES.el); if (el) el.textContent = mmss((Date.now() - SES.start) / 1000); fn(); }, 250); }
+function nextMoveStep() { for (let j = SES.i + 1; j < SES.steps.length; j++) if (SES.steps[j].k === 'move') return SES.steps[j]; return null; }
+
+function showStep() {
+  const st = SES.steps[SES.i], E = SES.el;
+  E.innerHTML = header(st);
+  if (st.k === 'move') {
+    const nx = SES.steps[SES.i + 1];
+    const upnext = nx ? (nx.k === 'move' ? MOVES[nx.id].name : nx.k === 'rest' ? `Rest ${nx.secs} s` : nx.k === 'done' ? 'Finish' : nx.sect) : '';
+    const stage = h(`<div class="stage"><div class="sfig"></div><div class="mname">${esc(st.alt || MOVES[st.id].name)}</div><div class="mreps">${/^\d/.test(st.reps) ? '×' : ''}${esc(st.reps)}</div>
+      <p class="cue">${esc(MOVES[st.id].cues[0])}</p>
+      ${st.timer ? `<div class="clock sm" id="rt" style="margin-top:8px">${mmss(st.timer)}</div>` : ''}
+      ${upnext ? `<div class="upnext">Up next: ${esc(upnext)}</div>` : ''}</div>`);
+    stage.querySelector('.sfig').appendChild(figure(st.id, { animate: true }));
+    FIGS.forEach((f) => { if (stage.contains(f.svg)) f.animate = true; });
+    stage.querySelector('.sfig').onclick = () => openMove(st.id);
+    E.appendChild(stage);
+    const acts = h(`<div class="sactions">${st.timer ? '<button class="btn ghost" id="tm">Start 60 s</button>' : ''}<button class="btn" id="nx">Done, next</button></div>`);
+    E.appendChild(acts);
+    if (st.timer) {
+      const tb = $('#tm', E); tb.textContent = `Start ${st.timer} s`;
+      tb.onclick = () => { const end = Date.now() + st.timer * 1000; tb.disabled = true; everySec(() => { const left = (end - Date.now()) / 1000; $('#rt', E).textContent = mmss(left); if (left <= 0) { clearInterval(tick); beep(660, .25, 2); } }); };
+    }
+    $('#nx', E).onclick = nextStep;
+  } else if (st.k === 'rest') {
+    const nm = nextMoveStep();
+    const C = 2 * Math.PI * 54;
+    const stage = h(`<div class="stage"><p class="label">Rest</p><div class="restring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="54" fill="none" stroke="var(--soft)" stroke-width="8"/><circle id="ring" cx="60" cy="60" r="54" fill="none" stroke="var(--bell)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="0"/></svg><div class="c"><div class="clock" id="rc">${mmss(st.secs)}</div></div></div>
+      ${nm ? `<div class="upnext"><span class="th"></span>Next: ${esc(MOVES[nm.id].name)} ×${esc(nm.reps)}</div>` : ''}</div>`);
+    if (nm) stage.querySelector('.th').appendChild(figure(nm.id, { small: true }));
+    E.appendChild(stage);
+    E.appendChild(h(`<div class="sactions"><button class="btn ghost" id="add">+15 s</button><button class="btn" id="nx">Skip rest</button></div>`));
+    let end = Date.now() + st.secs * 1000, total = st.secs, warned = new Set();
+    $('#add', E).onclick = () => { end += 15000; total += 15; };
+    $('#nx', E).onclick = nextStep;
+    everySec(() => {
+      const left = (end - Date.now()) / 1000;
+      $('#rc', E).textContent = mmss(left);
+      $('#ring', E).setAttribute('stroke-dashoffset', C * (1 - Math.max(0, left) / total));
+      const s = Math.ceil(left); if (s <= 3 && s > 0 && !warned.has(s)) { warned.add(s); beep(660, .1); }
+      if (left <= 0) { beep(990, .3); nextStep(); }
+    });
+  } else if (st.k === 'amrap') {
+    amrap(st);
+  } else if (st.k === 'plank') {
+    const stage = h(`<div class="stage"><div class="sfig"></div><div class="mname">Forearm plank</div><p class="cue">Hold until your form breaks. Tap Stop the moment the hips sag.</p><div class="clock" id="pc" style="margin-top:10px">0:00</div></div>`);
+    stage.querySelector('.sfig').appendChild(figure('plank', { animate: true }));
+    E.appendChild(stage);
+    E.appendChild(h(`<div class="sactions"><button class="btn" id="go">Start plank</button></div>`));
+    let t0 = 0;
+    $('#go', E).onclick = (ev) => {
+      if (!t0) { t0 = Date.now(); ev.target.textContent = 'Stop'; beep(880, .12); everySec(() => { $('#pc', E).textContent = mmss((Date.now() - t0) / 1000); }); }
+      else { clearInterval(tick); SES.res['plank' + st.which] = Math.round((Date.now() - t0) / 1000); beep(660, .2); nextStep(); }
+    };
+  } else if (st.k === 'done') {
+    finish();
+  }
+  bindHeader();
+}
+
+function amrap(st) {
+  const E = SES.el; let started = 0, mi = 0, rounds = 0;
+  const stage = h(`<div class="stage">
+    <div class="clock sm" id="ac">${mmss(st.cap * 60)}</div>
+    <div class="counter"><span class="muted">Rounds</span><b id="rn">0</b><span class="muted" id="mv">Move 1 of ${st.moves.length}</span></div>
+    <div class="sfig" style="width:min(100%,34vh)"></div>
+    <div class="mname" id="mn"></div><div class="mreps" id="mr" style="font-size:clamp(52px,14vw,80px)"></div>
+    <div class="upnext" id="up"></div></div>`);
+  E.appendChild(stage);
+  const acts = h(`<div class="sactions"><button class="btn" id="go">Start ${st.cap}:00 clock</button></div>`);
+  E.appendChild(acts);
+  function showMove() {
+    const [id, reps] = st.moves[mi], nx = st.moves[(mi + 1) % st.moves.length];
+    const fw = stage.querySelector('.sfig'); fw.innerHTML = ''; fw.appendChild(figure(id, { animate: true }));
+    FIGS.forEach((f) => { if (fw.contains(f.svg)) f.animate = true; });
+    fw.onclick = () => openMove(id);
+    $('#mn', E).textContent = MOVES[id].name; $('#mr', E).textContent = '×' + reps;
+    $('#mv', E).textContent = `Move ${mi + 1} of ${st.moves.length}`; $('#rn', E).textContent = rounds;
+    $('#up', E).textContent = 'Up next: ' + MOVES[nx[0]].name;
+  }
+  showMove();
+  let warned = new Set();
+  $('#go', E).onclick = (ev) => {
+    if (!started) {
+      started = Date.now(); beep(880, .15, 2);
+      acts.innerHTML = '<button class="btn ghost" id="bk" aria-label="Previous move">Back</button><button class="btn" id="nm">Done, next move</button>';
+      $('#nm', E).onclick = () => { mi++; if (mi >= st.moves.length) { mi = 0; rounds++; beep(990, .12); } showMove(); };
+      $('#bk', E).onclick = () => { if (mi > 0) mi--; else if (rounds > 0) { rounds--; mi = st.moves.length - 1; } showMove(); };
+      everySec(() => {
+        const left = st.cap * 60 - (Date.now() - started) / 1000;
+        $('#ac', E).textContent = mmss(left);
+        const s = Math.ceil(left); if (s <= 3 && s > 0 && !warned.has(s)) { warned.add(s); beep(660, .1); }
+        if (left <= 0) { clearInterval(tick); beep(990, .4, 3); score(rounds, mi); }
+      });
+    }
+  };
+  function score(r, m) {
+    let extraGuess = 0; for (let j = 0; j < m; j++) extraGuess += parseInt(st.moves[j][1]) || 0;
+    SES.res.score = r; SES.res.extra = extraGuess;
+    E.innerHTML = header(st);
+    const sc = h(`<div class="stage"><p class="label">Time. Your score</p><div class="mname">Full rounds</div>
+      <div class="stepper"><button id="rm" aria-label="One less round">−</button><b id="rv">${r}</b><button id="rp" aria-label="One more round">+</button></div>
+      <div class="mname" style="font-size:26px;margin-top:18px">Extra reps</div>
+      <div class="stepper"><button id="em" aria-label="Fewer reps">−</button><b id="ev" style="font-size:44px">${extraGuess}</b><button id="ep" aria-label="More reps">+</button></div></div>`);
+    E.appendChild(sc);
+    const upd = () => { $('#rv', E).textContent = SES.res.score; $('#ev', E).textContent = SES.res.extra; };
+    $('#rm', E).onclick = () => { SES.res.score = Math.max(0, SES.res.score - 1); upd(); };
+    $('#rp', E).onclick = () => { SES.res.score++; upd(); };
+    $('#em', E).onclick = () => { SES.res.extra = Math.max(0, SES.res.extra - 1); upd(); };
+    $('#ep', E).onclick = () => { SES.res.extra++; upd(); };
+    E.appendChild(h(`<div class="sactions"><button class="btn" id="nx">Save score</button></div>`));
+    $('#nx', E).onclick = nextStep;
+    bindHeader();
+  }
+}
+
+function finish() {
+  const E = SES.el, d = SES.d, dur = Math.round((Date.now() - SES.start) / 1000);
+  if (!d) {
+    E.appendChild(h(`<div class="stage"><div class="mname">Warmed up</div><p class="cue">${mmss(dur)}. Pick a session and go.</p></div>`));
+    E.appendChild(h(`<div class="sactions"><button class="btn" id="ok">Done</button></div>`));
+    $('#ok', E).onclick = endSession; return;
+  }
+  const sc = d.scale[scaleOf(d)];
+  const isR = d.kind === 'rounds' && !sc.cap;
+  if (isR) SES.res.rounds = sc.rounds;
+  const entry = { id: Date.now(), date: Date.now(), day: d.n, kind: isR ? 'rounds' : 'amrap', scale: scaleOf(d), bell: S.bell, dur, ...SES.res };
+  const prev = S.log.filter((e) => e.day === d.n).pop();
+  let cmp = '';
+  if (prev && entry.kind === 'amrap') {
+    const a = entry.score * 1000 + entry.extra, b = prev.score * 1000 + (prev.extra || 0);
+    cmp = a > b ? 'New best compared with last time.' : a === b ? 'Level with last time.' : `Last time: ${scoreText(prev)}.`;
+  }
+  E.appendChild(h(`<div class="stage"><p class="label">Session done</p><div class="mreps">${scoreText(entry)}</div>
+    <p class="cue">${mmss(dur)} total with the ${S.bell} kg bell. ${cmp}${entry.plank1 ? ` Planks: ${mmss(entry.plank1)} and ${mmss(entry.plank2)}.` : ''}</p>
+    <textarea id="nt" placeholder="Notes: where did the wheels fall off?"></textarea></div>`));
+  E.appendChild(h(`<div class="sactions"><button class="btn ghost" id="no">Discard</button><button class="btn" id="ok">Save to log</button></div>`));
+  $('#ok', E).onclick = () => { entry.note = $('#nt', E).value.trim(); S.log.push(entry); save(); tab = 'log'; clearInterval(tick); keepAwake(false); document.querySelector('.session')?.remove(); document.body.style.overflow = ''; SES = null; render(); scrollTo(0, 0); };
+  $('#no', E).onclick = () => { if (confirm('Discard this session?')) endSession(); };
+}
+
+document.addEventListener('visibilitychange', () => { if (SES && document.visibilityState === 'visible') keepAwake(true); });
+render();
+if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+</body>
+</html>

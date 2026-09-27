@@ -1,0 +1,16 @@
+{
+  "name": "One Bell",
+  "short_name": "One Bell",
+  "description": "Kettlebell training week with guided sessions and a log.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E7EAE5",
+  "theme_color": "#1F2327",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
